@@ -32,6 +32,7 @@
   :javac-options ["-source" "1.6" "-target" "1.6"]
   :java-source-paths ["src/main/java" "src/test/java"]
   :junit ["src/test/java"]
+  :plugins [[no-man-is-an-island/lein-eclipse "2.0.0"]]
   :profiles {:dev
              {:plugins [[lein-junit "1.1.5"]]}
              :provided

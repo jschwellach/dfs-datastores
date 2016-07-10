@@ -17,7 +17,8 @@
         :developerConnection "scm:git:ssh://git@github.com/nathanmarz/dfs-datastores.git"
         :url "https://github.com/nathanmarz/dfs-datastores"
         :dir ".."}
-  :pom-addition [:developers
+   :plugins [[no-man-is-an-island/lein-eclipse "2.0.0"]]
+   :pom-addition [:developers
                  [:developer
                   [:name "Nathan Marz"]
                   [:url "http://twitter.com/nathanmarz"]]
