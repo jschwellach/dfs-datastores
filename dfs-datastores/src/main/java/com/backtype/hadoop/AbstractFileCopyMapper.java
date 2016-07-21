@@ -31,8 +31,6 @@ public abstract class AbstractFileCopyMapper extends MapReduceBase implements Ma
         Path finalFile = new Path(target.toString());
         Path tmpFile = new Path(tmpRoot, UUID.randomUUID().toString());
 
-        setStatus(rprtr, "Copying " + sourceFile.toString() + " to " + tmpFile.toString());
-
         if(fsDest.exists(finalFile)) {
             FileChecksum fc1 = fsSource.getFileChecksum(sourceFile);
             FileChecksum fc2 = fsDest.getFileChecksum(finalFile);
@@ -45,15 +43,25 @@ public abstract class AbstractFileCopyMapper extends MapReduceBase implements Ma
             }
         }
 
-        fsDest.mkdirs(tmpFile.getParent());
+        if (fsDest.getUri().getScheme().equalsIgnoreCase("hdfs")) {
 
-        copyFile(fsSource, sourceFile, fsDest, tmpFile, rprtr);
+            setStatus(rprtr, "Copying " + sourceFile.toString() + " to " + tmpFile.toString());
+            fsDest.mkdirs(tmpFile.getParent());
+            copyFile(fsSource, sourceFile, fsDest, tmpFile, rprtr);
 
-        setStatus(rprtr, "Renaming " + tmpFile.toString() + " to " + finalFile.toString());
+            setStatus(rprtr, "Renaming " + tmpFile.toString() + " to " + finalFile.toString());
 
-        fsDest.mkdirs(finalFile.getParent());
-        if(!fsDest.rename(tmpFile, finalFile))
-            throw new IOException("could not rename " + tmpFile.toString() + " to " + finalFile.toString());
+            fsDest.mkdirs(finalFile.getParent());
+            if(!fsDest.rename(tmpFile, finalFile))
+                throw new IOException("could not rename " + tmpFile.toString() + " to " + finalFile.toString());
+
+        } else {
+
+            setStatus(rprtr, "Copying " + sourceFile.toString() + " to " + finalFile.toString());
+
+            fsDest.mkdirs(finalFile.getParent());
+            copyFile(fsSource, sourceFile, fsDest, finalFile, rprtr);
+        }
 
         // this is a bit of a hack; if we don't do this explicit rename, the owner of the file will
         // be hadoop each time.

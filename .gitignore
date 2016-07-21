@@ -16,3 +16,6 @@ profiles.xml
 .lein-deps-sum
 build
 target
+.classpath
+.project
+.settings/
