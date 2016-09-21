@@ -114,7 +114,6 @@ public class SparkConsolidator {
 		conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
 				.set("spark.kryo.classesToRegister", "org.apache.hadoop.io.Text")
 				.set("spark.kryo.classesToRegister", "org.apache.hadoop.io.ArrayWritable")
-				.set("spark.kryo.classesToRegister", "org.apache.hadoop.fs.LocalFileSystem")
 				.set("spark.kryoserializer.buffer.max value", "2g");
 
 		SparkContext sc = new SparkContext(conf.setMaster("local").setAppName("Consolidator: " + getDirsString(dirs)));
@@ -133,7 +132,7 @@ public class SparkConsolidator {
 			hadoopFile.foreach(function);
 			
 		}
-
+		jsc.close();
 	}
 
 	private static void registerShutdownHook() {
@@ -167,6 +166,8 @@ public class SparkConsolidator {
 		@Override
 		public void call(Tuple2<ArrayWritable, Text> t) throws Exception {
 			try {
+				// FIXME: this is not using the configuration for getting the filesystem. It should use
+				// Utils.getFS(args,fsUri,conf); but HadoopConfiguration is not serializable
 				fs = Utils.getFS(args.fsUri);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
