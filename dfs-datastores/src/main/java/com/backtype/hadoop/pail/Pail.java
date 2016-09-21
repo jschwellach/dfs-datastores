@@ -21,6 +21,7 @@ import com.backtype.hadoop.Coercer;
 import com.backtype.hadoop.Consolidator;
 import com.backtype.hadoop.PathLister;
 import com.backtype.hadoop.RenameMode;
+import com.backtype.hadoop.SparkConsolidator;
 import com.backtype.hadoop.formats.RecordInputStream;
 import com.backtype.hadoop.formats.RecordOutputStream;
 import com.backtype.support.Utils;
@@ -506,7 +507,7 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
     }
 
     public void consolidate() throws IOException {
-        consolidate(Consolidator.DEFAULT_CONSOLIDATION_SIZE);
+        consolidate(SparkConsolidator.DEFAULT_CONSOLIDATION_SIZE);
     }
 
     public void consolidate(long maxSize) throws IOException {
@@ -535,7 +536,7 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
             }
         }
 
-        Consolidator.consolidate(_fs, _format, new PailPathLister(false), consolidatedirs, maxSize, EXTENSION);
+        SparkConsolidator.consolidate(_fs, _format, new PailPathLister(false), consolidatedirs, maxSize, EXTENSION);
     }
 
     @Override
