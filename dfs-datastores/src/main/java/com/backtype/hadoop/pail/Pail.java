@@ -22,6 +22,7 @@ import com.backtype.hadoop.Consolidator;
 import com.backtype.hadoop.PathLister;
 import com.backtype.hadoop.RenameMode;
 import com.backtype.hadoop.SparkBalancedDistcp;
+import com.backtype.hadoop.SparkCoercer;
 import com.backtype.hadoop.SparkConsolidator;
 import com.backtype.hadoop.formats.RecordInputStream;
 import com.backtype.hadoop.formats.RecordOutputStream;
@@ -421,7 +422,8 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
         	SparkBalancedDistcp.distcp(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata), EXTENSION, args.configuration);
 //            BalancedDistcp.distcp(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata), EXTENSION, args.configuration);
         } else {
-            Coercer.coerce(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata), p.getFormat(), getFormat(), EXTENSION, args.configuration);
+        	SparkCoercer.coerce(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata), p.getFormat(), getFormat(), EXTENSION, args.configuration);        	
+//            Coercer.coerce(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata), p.getFormat(), getFormat(), EXTENSION, args.configuration);
         }
     }
 
