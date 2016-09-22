@@ -59,8 +59,6 @@ public class SparkCoercer {
 			JavaSparkContext jsc = new JavaSparkContext(sc);
 
 			Utils.setObject(jsc.hadoopConfiguration(), FileCopyInputFormat.ARGS, args);
-//			Utils.setObject(jsc.hadoopConfiguration(), FACTIN_ARG, factin);
-//			Utils.setObject(jsc.hadoopConfiguration(), FACTOUT_ARG, factout);
 	        
 			JavaPairRDD<Text, Text> hadoopFile = jsc.hadoopFile(args.source, FileCopyInputFormat.class, Text.class,
 					Text.class);
