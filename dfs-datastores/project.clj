@@ -29,16 +29,17 @@
                   [:name "Sam Ritchie"]
                   [:url "http://twitter.com/sritchie"]]]
   :javac-options ["-source" "1.8" "-target" "1.8"]
-  :java-source-paths ["src/main/java" "src/test/java"]
+  :java-source-paths ["src/main/java"]
   :junit ["src/test/java"]
   :profiles {:dev
              {:dependencies [[org.slf4j/slf4j-log4j12 "1.6.6"]]
-              :plugins [[lein-junit "1.1.5"]]}
+              :plugins [[lein-junit "1.1.8"]]}
              :provided
              {:dependencies [[org.apache.hadoop/hadoop-common "2.7.3"]
                              [org.apache.spark/spark-core_2.11 "2.0.0"]]}
              :test
-             {:dependencies [[junit/junit "4.12"]]}}
+             {:dependencies [[junit/junit "4.12"]]}
+             }
   :classifiers {:javadoc {:java-source-paths ^:replace []
                           :source-paths ^:replace []
                           :resource-paths ^:replace []}
