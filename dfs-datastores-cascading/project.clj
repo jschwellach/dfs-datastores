@@ -8,6 +8,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[com.backtype/dfs-datastores ~VERSION]
                  [org.slf4j/slf4j-log4j12 "1.6.6"]
+                 [junit/junit "4.12"]
                  [cascading/cascading-hadoop "2.5.3"
                   :exclusions [org.apache.hadoop/hadoop-core]]]
   :repositories {"conjars" "http://conjars.org/repo"}
@@ -29,14 +30,15 @@
                  [:developer
                   [:name "Sam Ritchie"]
                   [:url "http://twitter.com/sritchie"]]]
-  :javac-options ["-source" "1.6" "-target" "1.6"]
+  :javac-options ["-source" "1.8" "-target" "1.8"]
   :java-source-paths ["src/main/java" "src/test/java"]
   :junit ["src/test/java"]
   :plugins [[no-man-is-an-island/lein-eclipse "2.0.0"]]
   :profiles {:dev
-             {:plugins [[lein-junit "1.1.5"]]}
+             {:plugins [[lein-junit "1.1.8"]]}
              :provided
-             {:dependencies [[org.apache.hadoop/hadoop-core "1.2.1"]]}}
+             {:dependencies [[org.apache.hadoop/hadoop-common "2.7.3"]
+                             [org.apache.spark/spark-core_2.11 "2.0.0"]]}}
   :classifiers {:javadoc {:java-source-paths ^:replace []
                           :source-paths ^:replace []
                           :resource-paths ^:replace []}
