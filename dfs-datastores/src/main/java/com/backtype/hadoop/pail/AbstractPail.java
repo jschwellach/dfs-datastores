@@ -19,30 +19,25 @@ public abstract class AbstractPail {
 
     private class PailOutputStream implements RecordOutputStream {
 
-        private Path tempFile;
         private Path finalFile;
         private RecordOutputStream delegate;
 
         public PailOutputStream(String userfilename, boolean overwrite) throws IOException {
-            tempFile = new Path(_instance_root, userfilename + TEMP_EXTENSION);
+
             finalFile = new Path(_instance_root, userfilename + EXTENSION);
             if(finalFile.getName().equals(EXTENSION)) throw new IllegalArgumentException("Cannot create empty user file name");
-
-            mkdirs(tempFile.getParent());
-            if(exists(tempFile)) {
-                delete(tempFile, false);
-            }
-            delegate = createOutputStream(tempFile);
 
             if(overwrite && exists(finalFile)) {
                 delete(finalFile, false);
             }
 
             if(exists(finalFile)) {
-                delegate.close();
-                delete(tempFile, false);
                 throw new IOException("File already exists " + finalFile.toString());
             }
+
+            mkdirs(finalFile.getParent());
+            delegate = createOutputStream(finalFile);
+
         }
 
         public void writeRaw(byte[] record) throws IOException {
@@ -51,9 +46,6 @@ public abstract class AbstractPail {
 
         public void close() throws IOException {
             delegate.close();
-            if(!rename(tempFile, finalFile)) {
-                throw new IOException("Unable to atomically create pailfile with rename " + tempFile.toString());
-            }
         }
 
         public void writeRaw(byte[] record, int start, int length) throws IOException {
