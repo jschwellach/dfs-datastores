@@ -35,7 +35,9 @@ public abstract class AbstractPail {
                 throw new IOException("File already exists " + finalFile.toString());
             }
 
-            mkdirs(finalFile.getParent());
+            if (Utils.hasScheme(finalFile.getName()) && Utils.getScheme(finalFile.getName()).equals("hdfs")) {
+                mkdirs(finalFile.getParent());
+            }
             delegate = createOutputStream(finalFile);
 
         }
