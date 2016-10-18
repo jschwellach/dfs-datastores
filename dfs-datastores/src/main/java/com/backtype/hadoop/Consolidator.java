@@ -196,6 +196,10 @@ public class Consolidator {
 
             for(Path p: sources) {
                 fs.delete(p, false);
+                if (p.getName().startsWith("cons") && fs.getFileStatus(p.getParent()).isDir() && !p.getParent().equals(finalFile.getParent())) {
+                    LOG.info("Deleting empty directory " + p.getParent());
+                    fs.delete(p.getParent(), false);
+                }
                 rprtr.progress();
             }
 
