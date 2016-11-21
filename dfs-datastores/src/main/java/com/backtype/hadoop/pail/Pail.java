@@ -177,7 +177,9 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
                 }
             }
         }
-        fs.mkdirs(pathp);
+        if (!Utils.isS3Scheme(pathp.toString())) {
+            fs.mkdirs(pathp);
+        }
         if(existing==null) {
             if(spec==null) spec = PailFormatFactory.getDefaultCopy();
             if(spec.getName()==null) spec = PailFormatFactory.getDefaultCopy().setStructure(spec.getStructure());
@@ -282,7 +284,11 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
     }
 
     public Pail<T> getSubPail(String relpath) throws IOException {
-        mkdirs(new Path(getInstanceRoot(), relpath));
+
+        if (!(Utils.isS3Scheme(getInstanceRoot()))) {
+            mkdirs(new Path(getInstanceRoot(), relpath));
+        }
+
         return new Pail(_fs, new Path(getInstanceRoot(), relpath).toString());
     }
 
@@ -441,7 +447,9 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
 
         for(String name: p.getUserFileNames()) {
             String parent = new Path(name).getParent().toString();
-            _fs.mkdirs(new Path(getInstanceRoot() + "/" + parent));
+            if (!Utils.isS3Scheme(name)) {
+                _fs.mkdirs(new Path(getInstanceRoot() + "/" + parent));
+            }
             Path storedPath = p.toStoredPath(name);
             Path targetPath = toStoredPath(name);
             if(_fs.exists(targetPath) || args.renameMode == RenameMode.ALWAYS_RENAME) {
@@ -516,12 +524,14 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
         List<String> consolidatedirs = new ArrayList<String>();
         while(toCheck.size()>0) {
             String dir = toCheck.remove(0);
+            LOG.info("parent dir {}", dir);
             List<String> dirComponents = componentsFromRoot(dir);
             if(structure.isValidTarget(dirComponents.toArray(new String[dirComponents.size()]))) {
                 consolidatedirs.add(toFullPath(dir));
             } else {
                 FileStatus[] contents = listStatus(new Path(toFullPath(dir)));
                 for(FileStatus f: contents) {
+                    LOG.info("current file/dir item {}", f);
                     if(!f.isDir()) {
                         if(f.getPath().toString().endsWith(EXTENSION))
                             throw new IllegalStateException(f.getPath().toString() + " is not a dir and breaks the structure of " + getInstanceRoot());

@@ -43,7 +43,15 @@ public abstract class AbstractFileCopyMapper extends MapReduceBase implements Ma
             }
         }
 
-        if (fsDest.getUri().getScheme().equalsIgnoreCase("hdfs")) {
+        LOG.info(fsDest.getUri().toString());
+        if (fsDest.getUri().getScheme().equalsIgnoreCase("s3")) {
+
+            setStatus(rprtr, "Copying " + sourceFile.toString() + " to " + finalFile.toString());
+
+            // fsDest.mkdirs(finalFile.getParent());
+            copyFile(fsSource, sourceFile, fsDest, finalFile, rprtr);
+
+        } else {
 
             setStatus(rprtr, "Copying " + sourceFile.toString() + " to " + tmpFile.toString());
             fsDest.mkdirs(tmpFile.getParent());
@@ -55,12 +63,6 @@ public abstract class AbstractFileCopyMapper extends MapReduceBase implements Ma
             if(!fsDest.rename(tmpFile, finalFile))
                 throw new IOException("could not rename " + tmpFile.toString() + " to " + finalFile.toString());
 
-        } else {
-
-            setStatus(rprtr, "Copying " + sourceFile.toString() + " to " + finalFile.toString());
-
-            fsDest.mkdirs(finalFile.getParent());
-            copyFile(fsSource, sourceFile, fsDest, finalFile, rprtr);
         }
 
         // this is a bit of a hack; if we don't do this explicit rename, the owner of the file will

@@ -167,7 +167,10 @@ public class Consolidator {
                 rprtr.setStatus(status);
 
                 RecordStreamFactory fact = args.streams;
-                fs.mkdirs(finalFile.getParent());
+
+                if (!Utils.isS3Scheme(finalFile.toString())) {
+                    fs.mkdirs(finalFile.getParent());
+                }
 
                 RecordOutputStream os = fact.getOutputStream(fs, tmpFile);
                 for(Path i: sources) {

@@ -204,6 +204,10 @@ public class Utils {
         return new Path(path).toUri().getScheme();
     }
 
+    public static boolean isS3Scheme(String path) {
+        return (hasScheme(path) && getScheme(path).equals("s3"));
+    }
+
     public static FileSystem getFS(String path) throws IOException {
         return getFS(path, new Configuration());
     }
