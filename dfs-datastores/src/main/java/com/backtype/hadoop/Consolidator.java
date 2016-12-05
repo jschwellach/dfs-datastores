@@ -213,6 +213,11 @@ public class Consolidator {
                     LOG.info("delete empty folder " + parentEmptyFolder);
                     fs.delete(parentEmptyFolder, false);
                 }
+                Path parentParentEmptyFolder = new Path(p.getParent().getParent().getParent() + "_$folder$");
+                if (fs.exists(parentParentEmptyFolder)) {
+                    LOG.info("delete empty folder " + parentParentEmptyFolder);
+                    fs.delete(parentParentEmptyFolder, false);
+                }
                 rprtr.progress();
             }
         }
