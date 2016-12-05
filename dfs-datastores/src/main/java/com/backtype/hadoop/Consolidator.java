@@ -203,9 +203,18 @@ public class Consolidator {
                     LOG.info("Deleting empty directory " + p.getParent());
                     fs.delete(p.getParent(), false);
                 }
+                Path emptyFolder = new Path(p.getParent().toString() + "_$folder$");
+                if (fs.exists(emptyFolder)) {
+                    LOG.info("delete empty folder " + emptyFolder);
+                    fs.delete(emptyFolder, false);
+                }
+                Path parentEmptyFolder = new Path(p.getParent().getParent() + "_$folder$");
+                if (fs.exists(parentEmptyFolder)) {
+                    LOG.info("delete empty folder " + parentEmptyFolder);
+                    fs.delete(parentEmptyFolder, false);
+                }
                 rprtr.progress();
             }
-
         }
 
         @Override

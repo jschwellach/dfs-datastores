@@ -447,7 +447,7 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
 
         for(String name: p.getUserFileNames()) {
             String parent = new Path(name).getParent().toString();
-            if (!Utils.isS3Scheme(name)) {
+            if (!Utils.isS3Scheme(getInstanceRoot())) {
                 _fs.mkdirs(new Path(getInstanceRoot() + "/" + parent));
             }
             Path storedPath = p.toStoredPath(name);
