@@ -524,14 +524,14 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
         List<String> consolidatedirs = new ArrayList<String>();
         while(toCheck.size()>0) {
             String dir = toCheck.remove(0);
-            LOG.info("parent dir {}", dir);
+            // LOG.info("parent dir {}", dir);
             List<String> dirComponents = componentsFromRoot(dir);
             if(structure.isValidTarget(dirComponents.toArray(new String[dirComponents.size()]))) {
                 consolidatedirs.add(toFullPath(dir));
             } else {
                 FileStatus[] contents = listStatus(new Path(toFullPath(dir)));
                 for(FileStatus f: contents) {
-                    LOG.info("current file/dir item {}", f);
+                    // LOG.info("current file/dir item {}", f);
                     if(!f.isDir()) {
                         if(f.getPath().toString().endsWith(EXTENSION))
                             throw new IllegalStateException(f.getPath().toString() + " is not a dir and breaks the structure of " + getInstanceRoot());
