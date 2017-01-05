@@ -18,10 +18,10 @@ lein do sub install, sub junit
 
 After checkout run the commands above followed by:
 
-'''clojure
+```clojure
 lein eclipse
 lein do sub eclipse
-'''
+```
 
 This will create the neccesary eclipse .project and .classpath files. Now go into Eclipse and import the project:
 
@@ -29,10 +29,11 @@ File -> Import... -> General -> Existing Projects into Workspace
 
 In the Import Projects dialog deselect the bundle / parent project. The parent project only serves as a container and is not needed in Eclipse. Once the projects dfs-datastores and dfs-datastores-cascading are imported the build path needs to be adjusted. For this add the following directories to the build path (use context menu in the Package Explorer -> Build Path -> Use as Source Folder:
 
+```
 dfs-datastores -> src -> main -> java
 dfs-datastores -> src -> test -> java
 
 dfs-datastores-cascading -> src -> main -> java
 dfs-datastores-cascading -> src -> test -> java
-
+```
 That's it. Now the projects can be edited.
