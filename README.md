@@ -5,7 +5,7 @@ A dramatically simpler and more powerful way to store records on a distributed f
 to include dfs-datastores in your project, add the following to project.clj:
 
 ```clojure
-[com.backtype/dfs-datastores "1.3.6"]
+[com.backtype/dfs-datastores "2.0.0"]
 ```
 
 To run the tests:
@@ -37,3 +37,9 @@ dfs-datastores-cascading -> src -> main -> java
 dfs-datastores-cascading -> src -> test -> java
 ```
 That's it. Now the projects can be edited.
+
+### Changelog
+
+2.0.0
+ - add Spark support (consolidate, coerce, balanced distcp can use Spark as engine)
+ - improve file handling on AWS S3 file systems
