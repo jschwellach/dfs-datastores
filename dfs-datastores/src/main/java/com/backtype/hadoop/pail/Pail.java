@@ -34,8 +34,8 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
     public static final String META = "pail.meta";
 
     public enum Mode {
-    	HADOOP,
-    	SPARK
+        HADOOP,
+        SPARK
     }
 
     public static final Mode DEFAULT = Mode.HADOOP;
@@ -489,26 +489,30 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
         String sourceQual = getQualifiedRoot(p);
         String destQual = getQualifiedRoot(this);
         if(formatsSame) {
-        	switch (_mode) {
-			case SPARK:
-				SparkBalancedDistcp.distcp(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata), EXTENSION, args.configuration);
-				break;
-			case HADOOP:
-			default:
-				BalancedDistcp.distcp(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata), EXTENSION, args.configuration);
-				break;
-			}
-        	
+            switch (_mode) {
+                case SPARK :
+                    SparkBalancedDistcp.distcp(sourceQual, destQual, args.renameMode,
+                            new PailPathLister(args.copyMetadata), EXTENSION, args.configuration);
+                    break;
+                case HADOOP :
+                default :
+                    BalancedDistcp.distcp(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata),
+                            EXTENSION, args.configuration);
+                    break;
+            }
+
         } else {
-        	switch(_mode) {
-        	case SPARK:
-        		SparkCoercer.coerce(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata), p.getFormat(), getFormat(), EXTENSION, args.configuration);        	
-        		break;
-        	case HADOOP:
-        	default:
-        		Coercer.coerce(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata), p.getFormat(), getFormat(), EXTENSION, args.configuration);
-        		break;
-        	}
+            switch (_mode) {
+                case SPARK :
+                    SparkCoercer.coerce(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata),
+                            p.getFormat(), getFormat(), EXTENSION, args.configuration);
+                    break;
+                case HADOOP :
+                default :
+                    Coercer.coerce(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata),
+                            p.getFormat(), getFormat(), EXTENSION, args.configuration);
+                    break;
+            }
         }
     }
 
@@ -625,14 +629,15 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
             }
         }
         switch (_mode) {
-		case SPARK:
-			SparkConsolidator.consolidate(_fs, _format, new PailPathLister(false), consolidatedirs, maxSize, EXTENSION);
-			break;
-		case HADOOP:
-		default:
-			Consolidator.consolidate(_fs, _format, new PailPathLister(false), consolidatedirs, maxSize, EXTENSION);
-			break;
-		}
+            case SPARK :
+                SparkConsolidator.consolidate(_fs, _format, new PailPathLister(false), consolidatedirs, maxSize,
+                        EXTENSION);
+                break;
+            case HADOOP :
+            default :
+                Consolidator.consolidate(_fs, _format, new PailPathLister(false), consolidatedirs, maxSize, EXTENSION);
+                break;
+        }
     }
 
     @Override

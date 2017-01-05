@@ -30,7 +30,7 @@ import com.backtype.hadoop.pail.TestStructure;
 import com.backtype.support.FSTestCase;
 
 public class PailOpsTest extends FSTestCase {
-	private static final Mode MODE = Mode.SPARK;
+    private static final Mode MODE = Mode.SPARK;
     private void writeStrings(Pail pail, String userfile, String... strs) throws IOException {
         writeStrings(pail, userfile, Arrays.asList(strs));
     }
