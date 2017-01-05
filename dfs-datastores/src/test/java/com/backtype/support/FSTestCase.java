@@ -5,12 +5,15 @@
 
 package com.backtype.support;
 
-import junit.framework.TestCase;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-
 import java.io.IOException;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.junit.Ignore;
+
+import junit.framework.TestCase;
+
+@Ignore
 public class FSTestCase extends TestCase {
     public FileSystem local;
     public FileSystem fs;
