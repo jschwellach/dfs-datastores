@@ -11,6 +11,7 @@
                  [junit/junit "4.12"]
                  [cascading/cascading-hadoop "2.5.3"
                   :exclusions [org.apache.hadoop/hadoop-core]]]
+  :resource-paths ["src/main/resources"]
   :repositories {"conjars" "http://conjars.org/repo"}
   :deploy-repositories {"releases" {:url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
                                     :creds :gpg}

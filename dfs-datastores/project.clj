@@ -10,6 +10,7 @@
                  [jvyaml/jvyaml "1.0.0"]
                  [com.google.guava/guava "13.0"]
                  [junit/junit "4.12"]]
+  :resource-paths ["src/main/resources"]
   :deploy-repositories {"releases" {:url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
                                     :creds :gpg}
                         "snapshots" {:url "https://oss.sonatype.org/content/repositories/snapshots"
@@ -37,22 +38,9 @@
               :plugins [[lein-junit "1.1.8"]]}
              :provided
              {:dependencies [[org.apache.hadoop/hadoop-common "2.7.3"]
-                             [org.apache.spark/spark-core_2.11 "2.0.0"]]}
-             :test
-             {:dependencies [[junit/junit "4.12"]]}
-             }
+                             [org.apache.spark/spark-core_2.11 "2.0.0"]]}}
   :classifiers {:javadoc {:java-source-paths ^:replace []
                           :source-paths ^:replace []
                           :resource-paths ^:replace []}
                 :sources {:java-source-paths ^:replace []
-                          :resource-paths ^:replace []}}
-  
-  :pom-plugins [[org.apache.maven.plugins/maven-compiler-plugin "3.5.1"
-                 ;; this section is optional, values have the same syntax as pom-addition
-                 {:configuration ([source "1.8"]
-                                   [target "1.8"]
-                                   [encoding "UTF-8"])
-                  }
-                ]]
-  
-  )
+                          :resource-paths ^:replace []}})
