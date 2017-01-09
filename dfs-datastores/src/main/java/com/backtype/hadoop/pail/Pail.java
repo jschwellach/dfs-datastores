@@ -21,6 +21,9 @@ import com.backtype.hadoop.Coercer;
 import com.backtype.hadoop.Consolidator;
 import com.backtype.hadoop.PathLister;
 import com.backtype.hadoop.RenameMode;
+import com.backtype.hadoop.SparkBalancedDistcp;
+import com.backtype.hadoop.SparkCoercer;
+import com.backtype.hadoop.SparkConsolidator;
 import com.backtype.hadoop.formats.RecordInputStream;
 import com.backtype.hadoop.formats.RecordOutputStream;
 import com.backtype.support.Utils;
@@ -30,6 +33,13 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
 
     public static final String META = "pail.meta";
 
+    public enum Mode {
+        HADOOP,
+        SPARK
+    }
+
+    public static final Mode DEFAULT = Mode.HADOOP;
+    
     public class TypedRecordOutputStream implements RecordOutputStream {
         private HashMap<String, RecordOutputStream> _workers = new HashMap<String, RecordOutputStream>();
         private String _userfilename;
@@ -113,50 +123,98 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
     }
 
     public static Pail create(String path, PailSpec spec) throws IOException {
-        return create(Utils.getFS(path), path, spec);
+        return create(DEFAULT,Utils.getFS(path), path, spec);
     }
 
     public static Pail create(FileSystem fs, String path, PailSpec spec) throws IOException {
-        return create(fs, path, spec, true);
+        return create(DEFAULT,fs, path, spec, true);
     }
 
     public static Pail create(String path) throws IOException {
-        return create(Utils.getFS(path), path);
+        return create(DEFAULT,Utils.getFS(path), path);
     }
 
     public static Pail create(FileSystem fs, String path) throws IOException {
-        return create(fs, path, (PailSpec) null);
+        return create(DEFAULT,fs, path, (PailSpec) null);
     }
 
     public static Pail create(String path, PailStructure structure) throws IOException {
-        return create(Utils.getFS(path), path, structure);
+        return create(DEFAULT,Utils.getFS(path), path, structure);
     }
 
     public static Pail create(FileSystem fs, String path, PailStructure structure) throws IOException {
-        return create(fs, path, new PailSpec(structure));
+        return create(DEFAULT,fs, path, new PailSpec(structure));
     }
 
     public static Pail create(String path, PailStructure structure, boolean failOnExists) throws IOException {
-        return create(Utils.getFS(path), path, structure, failOnExists);
+        return create(DEFAULT,Utils.getFS(path), path, structure, failOnExists);
     }
 
     public static Pail create(FileSystem fs, String path, PailStructure structure, boolean failOnExists) throws IOException {
-        return create(fs, path, new PailSpec(structure), failOnExists);
+        return create(DEFAULT,fs, path, new PailSpec(structure), failOnExists);
     }
 
     public static Pail create(String path, boolean failOnExists) throws IOException {
-        return create(Utils.getFS(path), path, failOnExists);
+        return create(DEFAULT,Utils.getFS(path), path, failOnExists);
     }
 
     public static Pail create(FileSystem fs, String path, boolean failOnExists) throws IOException {
-        return create(fs, path, (PailSpec) null, failOnExists);
+        return create(DEFAULT,fs, path, (PailSpec) null, failOnExists);
     }
 
     public static Pail create(String path, PailSpec spec, boolean failOnExists) throws IOException {
-        return create(Utils.getFS(path), path, spec, failOnExists);
+        return create(DEFAULT,Utils.getFS(path), path, spec, failOnExists);
     }
 
     public static Pail create(FileSystem fs, String path, PailSpec spec, boolean failOnExists) throws IOException {
+       return create(DEFAULT,fs,path,spec,failOnExists);
+    }
+    
+    public static Pail create(Mode mode, String path, PailSpec spec) throws IOException {
+        return create(Utils.getFS(path), path, spec);
+    }
+
+    public static Pail create(Mode mode, FileSystem fs, String path, PailSpec spec) throws IOException {
+        return create(mode,fs, path, spec, true);
+    }
+
+    public static Pail create(Mode mode, String path) throws IOException {
+        return create(mode,Utils.getFS(path), path);
+    }
+
+    public static Pail create(Mode mode, FileSystem fs, String path) throws IOException {
+        return create(mode,fs, path, (PailSpec) null);
+    }
+
+    public static Pail create(Mode mode, String path, PailStructure structure) throws IOException {
+        return create(mode,Utils.getFS(path), path, structure);
+    }
+
+    public static Pail create(Mode mode, FileSystem fs, String path, PailStructure structure) throws IOException {
+        return create(mode,fs, path, new PailSpec(structure));
+    }
+
+    public static Pail create(Mode mode, String path, PailStructure structure, boolean failOnExists) throws IOException {
+        return create(mode,Utils.getFS(path), path, structure, failOnExists);
+    }
+
+    public static Pail create(Mode mode, FileSystem fs, String path, PailStructure structure, boolean failOnExists) throws IOException {
+        return create(mode,fs, path, new PailSpec(structure), failOnExists);
+    }
+
+    public static Pail create(Mode mode, String path, boolean failOnExists) throws IOException {
+        return create(mode,Utils.getFS(path), path, failOnExists);
+    }
+
+    public static Pail create(Mode mode, FileSystem fs, String path, boolean failOnExists) throws IOException {
+        return create(mode,fs, path, (PailSpec) null, failOnExists);
+    }
+
+    public static Pail create(Mode mode, String path, PailSpec spec, boolean failOnExists) throws IOException {
+        return create(mode,Utils.getFS(path), path, spec, failOnExists);
+    }
+
+    public static Pail create(Mode mode, FileSystem fs, String path, PailSpec spec, boolean failOnExists) throws IOException {
         Path pathp = new Path(path);
         PailFormatFactory.create(spec);
         PailSpec existing = getSpec(fs, pathp);
@@ -177,8 +235,8 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
                 }
             }
         }
-        if (!fs.getClass().getName().equals("com.amazon.ws.emr.hadoop.fs.EmrFileSystem")) {
-        	fs.mkdirs(pathp);
+        if (!Utils.isS3Scheme(pathp.toString())) {
+            fs.mkdirs(pathp);
         }
         if(existing==null) {
             if(spec==null) spec = PailFormatFactory.getDefaultCopy();
@@ -187,7 +245,7 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
         }
 
 
-        return new Pail(fs, path);
+        return new Pail(mode, fs, path);
     }
 
     private static PailSpec getSpec(FileSystem fs, Path path) throws IOException {
@@ -222,17 +280,19 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
     private PailStructure<T> _structure;
     private String _root;
     private FileSystem _fs;
+    private Mode _mode = DEFAULT;
 
-    public Pail(String path) throws IOException {
-        this(Utils.getFS(path), path);
+    public Pail(Mode mode, String path) throws IOException {
+        this(mode, Utils.getFS(path), path);
     }
 
-    public Pail(String path, Configuration conf) throws IOException {
-        this(Utils.getFS(path, conf), path);
+    public Pail(Mode mode, String path, Configuration conf) throws IOException {
+        this(mode, Utils.getFS(path, conf), path);
     }
 
-    public Pail(FileSystem fs, String path) throws IOException {
+    public Pail(Mode mode, FileSystem fs, String path) throws IOException {
         super(path);
+        _mode = mode;
         _fs = fs;
         _root = getRoot(fs, new Path(path));
         if(_root==null || !fs.exists(new Path(path)))
@@ -241,6 +301,19 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
         _structure = _spec.getStructure();
         _format = PailFormatFactory.create(_spec);
     }
+    
+    public Pail(String path) throws IOException {
+        this(DEFAULT,Utils.getFS(path), path);
+    }
+
+    public Pail(String path, Configuration conf) throws IOException {
+        this(DEFAULT,Utils.getFS(path, conf), path);
+    }
+
+    public Pail(FileSystem fs, String path) throws IOException {
+    	this(DEFAULT,fs,path);
+    }
+    
 
     public FileSystem getFileSystem() {
         return _fs;
@@ -284,10 +357,13 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
     }
 
     public Pail<T> getSubPail(String relpath) throws IOException {
-        mkdirs(new Path(getInstanceRoot(), relpath));
-        return new Pail(_fs, new Path(getInstanceRoot(), relpath).toString());
-    }
 
+        if (!(Utils.isS3Scheme(getInstanceRoot()))) {
+            mkdirs(new Path(getInstanceRoot(), relpath));
+        }
+        return new Pail(_mode, _fs, new Path(getInstanceRoot(), relpath).toString());
+    }
+    
     public PailSpec getSpec() {
         return _spec;
     }
@@ -360,7 +436,7 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
             delete(username);
         }
     }
-
+    
     public Pail createEmptyMimic(FileSystem fileSystem, String path) throws IOException {
         if(getSpec(fileSystem, new Path(path))!=null) {
             throw new IllegalArgumentException("Cannot make empty mimic at " + path + " because it is a subdir of a pail");
@@ -368,7 +444,7 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
         if(fileSystem.exists(new Path(path))) {
             throw new IllegalArgumentException(path + " already exists");
         }
-        return Pail.create(fileSystem, path, getSpec(), true);
+        return Pail.create(_mode, fileSystem, path, getSpec(), true);
     }
 
     public Pail createEmptyMimic(String path) throws IOException {
@@ -376,11 +452,11 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
     }
 
     public void coerce(String path, String name, Map<String, Object> args) throws IOException {
-        Pail.create(path, new PailSpec(name, args).setStructure(getSpec().getStructure())).copyAppend(this);
+        Pail.create(_mode,path, new PailSpec(name, args).setStructure(getSpec().getStructure())).copyAppend(this);
     }
 
     public void coerce(FileSystem fs, String path, String name, Map<String, Object> args) throws IOException {
-        Pail.create(fs, path, new PailSpec(name, args).setStructure(getSpec().getStructure())).copyAppend(this);
+        Pail.create(_mode,fs, path, new PailSpec(name, args).setStructure(getSpec().getStructure())).copyAppend(this);
     }
 
 
@@ -418,9 +494,30 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
         String sourceQual = getQualifiedRoot(p);
         String destQual = getQualifiedRoot(this);
         if(formatsSame) {
-            BalancedDistcp.distcp(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata), EXTENSION, args.configuration);
+            switch (_mode) {
+                case SPARK :
+                    SparkBalancedDistcp.distcp(sourceQual, destQual, args.renameMode,
+                            new PailPathLister(args.copyMetadata), EXTENSION, args.configuration);
+                    break;
+                case HADOOP :
+                default :
+                    BalancedDistcp.distcp(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata),
+                            EXTENSION, args.configuration);
+                    break;
+            }
+
         } else {
-            Coercer.coerce(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata), p.getFormat(), getFormat(), EXTENSION, args.configuration);
+            switch (_mode) {
+                case SPARK :
+                    SparkCoercer.coerce(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata),
+                            p.getFormat(), getFormat(), EXTENSION, args.configuration);
+                    break;
+                case HADOOP :
+                default :
+                    Coercer.coerce(sourceQual, destQual, args.renameMode, new PailPathLister(args.copyMetadata),
+                            p.getFormat(), getFormat(), EXTENSION, args.configuration);
+                    break;
+            }
         }
     }
 
@@ -443,8 +540,8 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
 
         for(String name: p.getUserFileNames()) {
             String parent = new Path(name).getParent().toString();
-            if (!_fs.getClass().getName().equals("com.amazon.ws.emr.hadoop.fs.EmrFileSystem")) {
-            	_fs.mkdirs(new Path(getInstanceRoot() + "/" + parent));
+            if (!Utils.isS3Scheme(getInstanceRoot())) {
+                _fs.mkdirs(new Path(getInstanceRoot() + "/" + parent));
             }
             Path storedPath = p.toStoredPath(name);
             Path targetPath = toStoredPath(name);
@@ -520,12 +617,14 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
         List<String> consolidatedirs = new ArrayList<String>();
         while(toCheck.size()>0) {
             String dir = toCheck.remove(0);
+            // LOG.info("parent dir {}", dir);
             List<String> dirComponents = componentsFromRoot(dir);
             if(structure.isValidTarget(dirComponents.toArray(new String[dirComponents.size()]))) {
                 consolidatedirs.add(toFullPath(dir));
             } else {
                 FileStatus[] contents = listStatus(new Path(toFullPath(dir)));
                 for(FileStatus f: contents) {
+                    // LOG.info("current file/dir item {}", f);
                     if(!f.isDir()) {
                         if(f.getPath().toString().endsWith(EXTENSION))
                             throw new IllegalStateException(f.getPath().toString() + " is not a dir and breaks the structure of " + getInstanceRoot());
@@ -538,8 +637,16 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
                 }
             }
         }
-
-        Consolidator.consolidate(_fs, _format, new PailPathLister(false), consolidatedirs, maxSize, EXTENSION);
+        switch (_mode) {
+            case SPARK :
+                SparkConsolidator.consolidate(_fs, _format, new PailPathLister(false), consolidatedirs, maxSize,
+                        EXTENSION);
+                break;
+            case HADOOP :
+            default :
+                Consolidator.consolidate(_fs, _format, new PailPathLister(false), consolidatedirs, maxSize, EXTENSION);
+                break;
+        }
     }
 
     @Override
@@ -614,6 +721,10 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
                     " --> " + full.toString());
         }
     }
+    
+    public Mode getMode() {
+    	return _mode;
+    }
 
     protected static class PailPathLister implements PathLister {
         boolean _includeMeta;
@@ -627,8 +738,12 @@ public class Pail<T> extends AbstractPail implements Iterable<T>{
         }
 
         public List<Path> getFiles(FileSystem fs, String path) {
+        	return getFiles(DEFAULT,fs,path);
+        }
+        
+        public List<Path> getFiles(Mode mode, FileSystem fs, String path) {
             try {
-                Pail p = new Pail(fs, path);
+                Pail p = new Pail(mode, fs, path);
                 List<Path> ret;
                 if(_includeMeta) {
                     ret = p.getStoredFilesAndMetadata();

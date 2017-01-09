@@ -1,5 +1,15 @@
 package com.backtype.support;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -7,11 +17,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.util.StringUtils;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import org.apache.spark.SparkConf;
 
 
 public class Utils {
@@ -81,6 +87,28 @@ public class Utils {
         return deserialize(val);
     }
 
+    public static void setObject(SparkConf conf, String key, Object o) {
+    	conf.set(key, StringUtils.byteToHexString(serialize(o)));
+	}
+    
+    public static Object getObject(SparkConf conf, String key) {
+    	String s = conf.get(key);
+        if(s==null) return null;
+        byte[] val = StringUtils.hexStringToByte(s);
+        return deserialize(val);
+    }
+
+    public static void setObject(Configuration conf, String key, Object o) {
+    	conf.set(key, StringUtils.byteToHexString(serialize(o)));
+    }
+    
+    public static Object getObject(Configuration conf, String key) {
+    	String s = conf.get(key);
+        if(s==null) return null;
+        byte[] val = StringUtils.hexStringToByte(s);
+        return deserialize(val);
+    }
+    
     public static byte[] serialize(Object obj) {
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -202,6 +230,10 @@ public class Utils {
 
     public static String getScheme(String path) {
         return new Path(path).toUri().getScheme();
+    }
+
+    public static boolean isS3Scheme(String path) {
+        return (hasScheme(path) && getScheme(path).equals("s3"));
     }
 
     public static FileSystem getFS(String path) throws IOException {

@@ -5,6 +5,8 @@ import com.backtype.hadoop.formats.RecordOutputStream;
 import com.backtype.support.Utils;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.List;
 
 
 public abstract class AbstractPail {
+    public static Logger LOG = LoggerFactory.getLogger(PailOutputStream.class);
     public static final String EXTENSION = ".pailfile";
     public static final String META_EXTENSION = ".metafile";
     public static final String META_TEMP_EXTENSION = ".metafiletmp";
@@ -19,30 +22,28 @@ public abstract class AbstractPail {
 
     private class PailOutputStream implements RecordOutputStream {
 
-        private Path tempFile;
         private Path finalFile;
         private RecordOutputStream delegate;
 
         public PailOutputStream(String userfilename, boolean overwrite) throws IOException {
-            tempFile = new Path(_instance_root, userfilename + TEMP_EXTENSION);
+
             finalFile = new Path(_instance_root, userfilename + EXTENSION);
             if(finalFile.getName().equals(EXTENSION)) throw new IllegalArgumentException("Cannot create empty user file name");
-
-            mkdirs(tempFile.getParent());
-            if(exists(tempFile)) {
-                delete(tempFile, false);
-            }
-            delegate = createOutputStream(tempFile);
 
             if(overwrite && exists(finalFile)) {
                 delete(finalFile, false);
             }
 
             if(exists(finalFile)) {
-                delegate.close();
-                delete(tempFile, false);
                 throw new IOException("File already exists " + finalFile.toString());
             }
+
+            LOG.info(finalFile.toString());
+            if (!(Utils.isS3Scheme(finalFile.toString()))) {
+                mkdirs(finalFile.getParent());
+            }
+            delegate = createOutputStream(finalFile);
+
         }
 
         public void writeRaw(byte[] record) throws IOException {
@@ -51,9 +52,6 @@ public abstract class AbstractPail {
 
         public void close() throws IOException {
             delegate.close();
-            if(!rename(tempFile, finalFile)) {
-                throw new IOException("Unable to atomically create pailfile with rename " + tempFile.toString());
-            }
         }
 
         public void writeRaw(byte[] record, int start, int length) throws IOException {
@@ -89,13 +87,17 @@ public abstract class AbstractPail {
     }
 
     public void mkAttr(String attr) throws IOException {
-        mkdirs(new Path(_instance_root + "/" + attr));
+        if (!Utils.isS3Scheme(_instance_root)) {
+            mkdirs(new Path(_instance_root + "/" + attr));
+        }
     }
 
     public void writeMetadata(String metafilename, String metadata) throws IOException {
         Path metaPath = toStoredMetadataPath(metafilename);
         Path metaTmpPath = toStoredMetadataTmpPath(metafilename);
-        mkdirs(metaTmpPath.getParent());
+        if (!Utils.isS3Scheme(metaTmpPath.toString())) {
+            mkdirs(metaTmpPath.getParent());
+        }
         delete(metaPath, false);
         delete(metaTmpPath, false);
         RecordOutputStream os = createOutputStream(metaTmpPath);
